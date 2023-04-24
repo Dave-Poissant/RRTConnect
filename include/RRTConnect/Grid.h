@@ -30,13 +30,40 @@ public:
         m_obstacles.push_back(new Obstacle(xGridPos, yGridPos));
     }
 
+    void addStartingPoint(int xGridPos, int yGridPos)
+    {
+        m_start = new Vertex(xGridPos, yGridPos, true, false);
+        m_vertices.push_back(m_start);
+    }
+
+    void addGoalPoint(int xGridPos, int yGridPos)
+    {
+        m_goal = new Vertex(xGridPos, yGridPos, false, true);
+        m_vertices.push_back(m_goal);
+    }
+
+    void addVertex(int xGridPos, int yGridPos)
+    {
+        m_vertices.push_back(new Vertex(xGridPos, yGridPos));
+    }
+
+    void addEdge(int xGridPos, int yGridPos, int nextXGridPos, int nextYGridPos)
+    {
+        m_edges.push_back(new Edge(xGridPos, yGridPos, nextXGridPos, nextYGridPos));
+    }
+
     std::vector<Obstacle*> getObstacles() { return m_obstacles; }
+    std::vector<Vertex*> getVertices() { return m_vertices; }
+    std::vector<Edge*> getEdges() { return m_edges; }
 
 private:
 
     std::vector<Obstacle*> m_obstacles;
     std::vector<Vertex*> m_vertices;
     std::vector<Edge*> m_edges;
+
+    Vertex* m_start;
+    Vertex* m_goal;
 
 
     const Config m_config;

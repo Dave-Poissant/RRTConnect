@@ -18,6 +18,8 @@ public:
 private:
 
     void renderObstacles();
+    void renderVertices();
+    void renderEdges();
 
     const Config m_config;
     Context* m_context;
