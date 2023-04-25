@@ -5,8 +5,10 @@
 #include "RRTConnect/Obstacle.h"
 #include "RRTConnect/Vertex.h"
 #include "RRTConnect/Edge.h"
+#include "RRTConnect/ShapeFactory.h"
 
 #include <vector>
+#include <mutex>
 
 class Grid
 {
@@ -23,38 +25,83 @@ public:
     }
 
     ~Grid()
-    {}
-
-    void addObstacle(int xGridPos, int yGridPos)
     {
-        m_obstacles.push_back(new Obstacle(xGridPos, yGridPos));
+        for (auto obstacle : m_obstacles)
+            delete obstacle;
+
+        for (auto vertex : m_vertices)
+            delete vertex;
+
+        for (auto edge : m_edges)
+            delete edge;
+
+        if (m_start)
+            delete m_start;
+
+        if (m_goal)
+            delete m_goal;
     }
 
-    void addStartingPoint(int xGridPos, int yGridPos)
+    Obstacle* addObstacle(int xGridPos, int yGridPos)
     {
-        m_start = new Vertex(xGridPos, yGridPos, true, false);
+        Obstacle* obstacle = new Obstacle(xGridPos, yGridPos);
+        m_obstacles.push_back(obstacle);
+        return obstacle;
+    }
+
+    Vertex* addStartingPoint(float xPos, float yPos)
+    {
+        sf::CircleShape* shape = ShapeFactory::createStartingPointShape();
+        m_start = new Vertex(
+            CollisionGeometry(sf::Vector2f(xPos, yPos), sf::Vector2f(shape->getRadius()*2, shape->getRadius()*2)), 
+            shape);
+
+        m_verticesMutex.lock();
         m_vertices.push_back(m_start);
+        m_verticesMutex.unlock();
+        return m_start;
     }
 
-    void addGoalPoint(int xGridPos, int yGridPos)
+    Vertex* addGoalPoint(float xPos, float yPos)
     {
-        m_goal = new Vertex(xGridPos, yGridPos, false, true);
+        sf::CircleShape* shape = ShapeFactory::createGoalPointShape();
+        m_goal = new Vertex(
+            CollisionGeometry(sf::Vector2f(xPos, yPos), sf::Vector2f(shape->getRadius()*2, shape->getRadius()*2)), 
+            shape);
+
+        m_verticesMutex.lock();
         m_vertices.push_back(m_goal);
+        m_verticesMutex.unlock();
+        return m_goal;
     }
 
-    void addVertex(int xGridPos, int yGridPos)
+    Vertex* addVertex(float xPos, float yPos)
     {
-        m_vertices.push_back(new Vertex(xGridPos, yGridPos));
+        sf::CircleShape* shape = ShapeFactory::createVertexShape();
+        Vertex* vertex = new Vertex(
+            CollisionGeometry(sf::Vector2f(xPos, yPos), sf::Vector2f(shape->getRadius()*2, shape->getRadius()*2)), 
+            shape);
+        
+        m_verticesMutex.lock();
+        m_vertices.push_back(vertex);
+        m_verticesMutex.unlock();
+        return vertex;
     }
 
-    void addEdge(int xGridPos, int yGridPos, int nextXGridPos, int nextYGridPos)
+    Edge* addEdge(Vertex* vertex1, Vertex* vertex2)
     {
-        m_edges.push_back(new Edge(xGridPos, yGridPos, nextXGridPos, nextYGridPos));
+        Edge* edge = new Edge(vertex1, vertex2);
+        
+        m_edges.push_back(edge);
+        return edge;
     }
 
     std::vector<Obstacle*> getObstacles() { return m_obstacles; }
     std::vector<Vertex*> getVertices() { return m_vertices; }
     std::vector<Edge*> getEdges() { return m_edges; }
+
+    Vertex* getStart() { return m_start; }
+    Vertex* getGoal() { return m_goal; }
 
 private:
 
@@ -69,5 +116,8 @@ private:
     const Config m_config;
     int m_width;
     int m_height;
+
+    std::mutex m_verticesMutex;
+    std::mutex m_edgesMutex;
 };
 

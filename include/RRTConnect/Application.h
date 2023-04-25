@@ -1,20 +1,22 @@
 #pragma once
 
 #include <iostream>
+#include <thread>
 
 #include "RRTConnect/Config.h"
 #include "RRTConnect/Context.h"
 #include "RRTConnect/Renderer.h"
-#include "RRTConnect/Grid.h"
+#include "RRTConnect/SolverRRTConnect.h"
 
 
 class Application
 {
 public:
     Application(const Config& config);
-
+    
 
     void playingLoop();
+    Grid* getGrid() { return m_grid; }
 
 private:
 
@@ -28,5 +30,8 @@ private:
     Context m_context;
     Renderer* m_renderer;
     Grid* m_grid;
+
+    SolverRRTConnect* m_solver;
+    std::thread* m_solverThread;
 
 };

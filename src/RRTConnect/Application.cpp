@@ -16,7 +16,11 @@ Application::Application(const Config& config)
     generateObstacles();
     generateStartingPoint();
     generateGoalPoint();
-    generateEdges();
+    //generateEdges();
+
+    m_solver = new SolverRRTConnect(m_grid, &m_config);
+    m_solverThread = nullptr;
+    
 }
 
 void Application::generateObstacles()
@@ -90,17 +94,21 @@ void Application::generateObstacles()
 
 void Application::generateStartingPoint()
 {
-    m_grid->addStartingPoint(2, 2);
+    m_grid->addStartingPoint(80, 94);
 }
 
 void Application::generateGoalPoint()
 {
-    m_grid->addGoalPoint(54, 41);
+    m_grid->addGoalPoint(54*32.f, 41*32.f);
 }
 
 void Application::generateEdges()
 {
-    m_grid->addEdge(3, 3, 4, 4);
+    Vertex* vertex1 = m_grid->addVertex(250, 800);
+    m_grid->addEdge(m_grid->getStart(), vertex1);
+    Vertex* vertex2 = m_grid->addVertex(1400, 750);
+    m_grid->addEdge(vertex1, vertex2);
+    m_grid->addEdge(vertex2, m_grid->getGoal());
 }
 
 void Application::playingLoop()
@@ -113,9 +121,12 @@ void Application::playingLoop()
     sf::Time m;
 
     while (m_context.window.isOpen()/* && !m_states.empty()*/) {
-        auto deltaTime = dtTimer.restart();
+        //auto deltaTime = dtTimer.restart();
         //auto &state = *m_states.back();
 
+        if (!m_solverThread) {
+            m_solverThread = new std::thread(&SolverRRTConnect::solve, m_solver);
+        }
         /*state.handleInput();
         state.update(deltaTime.asSeconds());
         m_camera.update();*/

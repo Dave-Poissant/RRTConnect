@@ -8,7 +8,10 @@ Renderer::Renderer(const Config& config, Context* context, Grid* grid)
 {}
 
 Renderer::~Renderer()
-{}
+{
+    delete m_grid;
+    delete m_context;
+}
 
 void Renderer::render()
 {
@@ -22,24 +25,24 @@ void Renderer::render()
 
 void Renderer::renderObstacles()
 {
-    for (size_t i = 0; i < m_grid->getObstacles().size(); i++)
+    for (auto obstacle : m_grid->getObstacles())
     {
-        m_context->window.draw(*(m_grid->getObstacles().at(i)->getObstacle()));
+        m_context->window.draw(*(obstacle->getObstacle()));
     }
 }
 
 void Renderer::renderVertices()
 {
-    for (size_t i = 0; i < m_grid->getVertices().size(); i++)
+    for (auto vertex : m_grid->getVertices())
     {
-        m_context->window.draw(*(m_grid->getVertices().at(i)->getVertex()));
+        m_context->window.draw(*(vertex->getVertex()));
     }
 }
 
 void Renderer::renderEdges()
 {
-    for (size_t i = 0; i < m_grid->getEdges().size(); i++)
+    for (auto edge : m_grid->getEdges())
     {
-        m_context->window.draw(m_grid->getEdges().at(i)->getEdge(), 2, sf::Lines);
+        m_context->window.draw(edge->getEdge(), 2, sf::Lines);
     }
 }

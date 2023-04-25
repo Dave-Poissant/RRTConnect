@@ -38,8 +38,13 @@ int main()
 
 	Config config;
     Application* app = new Application(config);
-
-    app->playingLoop();
+	//SolverRRTConnect* solver = new SolverRRTConnect(app->getGrid(), &config);
+	app->playingLoop();
+	//std::thread t1(&Application::playingLoop, app);
+	//std::thread t2(&SolverRRTConnect::solve, solver);
+	
+	//t1.join();
+	//t2.join();
 	
 	return 0;
 }

@@ -6,28 +6,24 @@ class Edge
 {
 public:
 
-    Edge(int xGridPos, int yGridPos, int nextXGridPos, int nextYGridPos)
-    : m_xGridPos(xGridPos), m_yGridPos(yGridPos), m_nextXGridPos(nextXGridPos), m_nextYGridPos(nextYGridPos)
+    Edge(Vertex* vertex1, Vertex* vertex2)
     {
-        m_line[0] = sf::Vertex(sf::Vector2f(m_xGridPos*32.f, m_yGridPos*32.f));
-        m_line[1] = sf::Vertex(sf::Vector2f(m_nextXGridPos*32.f, m_nextXGridPos*32.f));
+        m_line[0] = sf::Vertex(sf::Vector2f(vertex1->x()+(vertex1->w()/2.f), vertex1->y()+(vertex1->h()/2.f)));
+        m_line[1] = sf::Vertex(sf::Vector2f(vertex2->x()+(vertex2->w()/2.f), vertex2->y()+(vertex2->h()/2.f)));
 
         // Set color to black
-        m_line[0].color = sf::Color(255, 255, 255);
-        m_line[1].color = sf::Color(255, 255, 255);
+        m_line[0].color = sf::Color::Black;
+        m_line[1].color = sf::Color::Black;
     }
     
-    ~Edge();
+    ~Edge()
+    {}
 
     sf::Vertex* getEdge() { return m_line; }
 
 private:
 
     sf::Vertex m_line[2];
-    int m_xGridPos;
-    int m_yGridPos;
-    int m_nextXGridPos;
-    int m_nextYGridPos;
 
 };
 
