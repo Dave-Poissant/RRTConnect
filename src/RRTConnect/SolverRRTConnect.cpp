@@ -16,18 +16,9 @@ SolverRRTConnect::SolverRRTConnect(Grid* grid, const Config* config)
 SolverRRTConnect::~SolverRRTConnect()
 {}
 
-bool SolverRRTConnect::isGoalReached()
+bool SolverRRTConnect::isGoalReached(Vertex* n1, Vertex* n2)
 {
-    Vertex* goal = m_grid->getGoal();
-    Vertex* last = m_grid->getVertices().back();
-
-    if (last->x() == goal->x() && last->y() == goal->y())
-    {
-        m_solved = true;
-        return true;
-    }
-
-    return false;
+    return n1->x() == n2->x() && n1->y() == n2->y();
 }
 
 double angle(const Vertex* n1, const Vertex* n2)
@@ -112,15 +103,11 @@ bool SolverRRTConnect::isObstacleBetween(Vertex* n1, Vertex* n2)
     {
         float lineX = (float)n1->x() + (float)(i * RESOLUTION * cos(theta));
         float lineY = (float)n1->y() + (float)(i * RESOLUTION * sin(theta));
-        //std::cout << "Pos x: " << lineX << " y: " << lineY << std::endl;
 
         for (auto& obstacle : m_grid->getObstacles())
         {
             if (obstacle->isPointInside(sf::Vector2f(lineX, lineY)))
-            {
-                std::cout << "There is obstacle" << std::endl;
                 return true;
-            }
         }
     }
 
@@ -143,14 +130,14 @@ bool SolverRRTConnect::isInObstacle(Vertex* qNew)
     return false;
 }
 
-float randomizeFromRange(float x1, float x2)
+int randomizeFromRange(int x1, int x2)
 {
     // obtain a random number from hardware
     std::random_device rd;
     // seed the generator
     std::mt19937 eng(rd());
     // define the range
-    std::uniform_real_distribution<float> p(x1, x2);
+    std::uniform_int_distribution<int> p(x1, x2);
     return p(eng);
 }
 
@@ -200,54 +187,40 @@ bool SolverRRTConnect::solve()
     int i = 0;
     while (!m_solved && i < 1000)
     {
-        std::cout << "Iteration: " << i << std::endl;
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         Vertex* sampleNode = createRandomNode();
 
         // obstacle
         if (isInObstacle(sampleNode))
-        {
-            std::cout << "sampleNode in obstacle" << std::endl;
             continue;
-        }
 
         // visited
         if (sampleListFront.find(*sampleNode) != sampleListFront.end() ||
             sampleListBack.find(*sampleNode) != sampleListBack.end())
-        {
-            std::cout << "sampleNode visited" << std::endl;   
             continue;
-        }
 
         Vertex* newNode = findNearestNode(sampleListFront, sampleNode);
-        std::cout << "newNode found" << std::endl;
 
-        if (newNode->m_id == -1)
-        {
-            std::cout << "newNode id is -1" << std::endl;
+        if (newNode->m_id == -1 || isInObstacle(newNode))
             continue;
-        }
         else
         {
-            std::cout << "addVertex newNode" << std::endl;
             m_grid->addVertex(newNode->x(), newNode->y());
+            m_grid->addEdge(newNode->m_id, newNode->m_parentId);
             sampleListFront.insert(*newNode);
 
             Vertex* newNodeBack = findNearestNode(sampleListBack, newNode);
-            std::cout << "NewNodeBack at pos x: " << newNodeBack->x() << " y: " << newNodeBack->y() << std::endl;
 
-            if (newNodeBack->m_id != -1)
+            if (newNodeBack->m_id != -1 && !isInObstacle(newNodeBack))
             {
-                std::cout << "newNodeBack id is not -1" << std::endl;
                 sampleListBack.insert(*newNodeBack);
-                std::cout << "addVertex newNodeBack" << std::endl;
                 m_grid->addVertex(newNodeBack->x(), newNodeBack->y());
+                m_grid->addEdge(newNodeBack->m_id, newNodeBack->m_parentId);
 
                 // greedy extending
                 while (true)
                 {
-                    //std::cout << "getting greedy" << std::endl;
                     double distance = std::min(MAX_DISTANCE, dist(newNode, newNodeBack));
                     double theta = angle(newNodeBack, newNode);
 
@@ -258,10 +231,10 @@ bool SolverRRTConnect::solve()
                     newNodeBack2->m_id = grid2Index(newNodeBack2->x(), newNodeBack2->y());
                     newNodeBack2->m_parentId = newNodeBack->m_id;
 
-                    if (!isObstacleBetween(newNodeBack, newNodeBack2))
+                    if (!isObstacleBetween(newNodeBack, newNodeBack2) && !isInObstacle(newNodeBack2))
                     {
-                        //std::cout << "Adding node in greedy" << std::endl;
                         m_grid->addVertex(newNodeBack2->x(), newNodeBack2->y());
+                        m_grid->addEdge(newNodeBack2->m_id, newNodeBack2->m_parentId);
                         sampleListBack.insert(*newNodeBack2);
 
                         newNodeBack = createVertexAtPos(newNodeBack2->x(), newNodeBack2->y());
@@ -269,15 +242,14 @@ bool SolverRRTConnect::solve()
                         newNodeBack->m_parentId = newNodeBack2->m_parentId;
                     }
                     else
-                    {
-                        std::cout << "breaking" << std::endl;
                         break;
-                    }
 
                     // goal found
-                    if (newNodeBack == newNode)
+                    if (isGoalReached(newNodeBack, newNode))
                     {
                         std::cout << "Path found" << std::endl;
+                        m_grid->addPath(convertClosedListToPath(*newNodeBack2));
+                        m_solved = true;
                         return true;
                     }
                 }
@@ -288,13 +260,78 @@ bool SolverRRTConnect::solve()
         if (sampleListBack.size() < sampleListFront.size())
             std::swap(sampleListFront, sampleListBack);
 
-        
-        //std::cout << "After greedy" << std::endl;
-
-        //m_grid->addEdge(qNear, qNew);
         i++;
     }
     std::cout << "DONE" << std::endl;
 
     return false;
 }
+
+std::vector<Vertex*> SolverRRTConnect::convertClosedListToPath(const Vertex& boundary)
+{
+    Vertex* start = m_grid->getStart();
+    Vertex* goal = m_grid->getGoal();
+
+    start->m_id = grid2Index(start->x(), start->y());
+    goal->m_id = grid2Index(goal->x(), goal->y());
+
+
+    if (sampleListFront.find(*start) == sampleListFront.end())
+        std::swap(sampleListFront, sampleListBack);
+
+    std::vector<Vertex*> path;
+
+    // backward
+    std::vector<Vertex*> pathBack;
+    Vertex current = *sampleListBack.find(boundary);
+    int boundaryId = current.m_id;
+    //current.m_parentId = boundary.m_parentId;
+    while (!isGoalReached(&current, goal))
+    {
+        Vertex* currentPtr = createVertexAtPos(current.x(), current.y());
+        currentPtr->m_id = current.m_id;
+        currentPtr->m_parentId = current.m_parentId;
+
+        pathBack.push_back(currentPtr);
+        auto it = sampleListBack.find(Vertex(current.m_parentId % m_config->windowX, current.m_parentId / m_config->windowX, current.m_parentId));
+        if (it != sampleListBack.end())
+        {
+            current = *it;
+        }
+        else
+            return {};
+    }
+    //pathBack.push_back(goal);
+
+    // forward
+    for (auto rit = pathBack.rbegin(); rit != pathBack.rend(); rit++)
+        path.push_back(*rit);
+
+    current = *sampleListFront.find(boundary);
+    //current = *pathBack.back();
+    while (!isGoalReached(&current, start))
+    {
+        auto it = sampleListFront.find(Vertex(current.m_parentId % m_config->windowX, current.m_parentId / m_config->windowX, current.m_parentId));
+        if (it != sampleListFront.end())
+        {
+            current = *it;
+        }
+        else
+            return {};
+
+        Vertex* currentPtr = createVertexAtPos(current.x(), current.y());
+        currentPtr->m_id = current.m_id;
+        currentPtr->m_parentId = boundaryId;
+        boundaryId = current.m_id;
+
+        //if (currentPtr->m_id != start->m_id)
+        path.push_back(currentPtr);
+    }
+
+
+    return path;
+}
+
+
+
+

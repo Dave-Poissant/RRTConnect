@@ -20,6 +20,7 @@ private:
     void renderObstacles();
     void renderVertices();
     void renderEdges();
+    void renderPath();
 
     const Config m_config;
     Context* m_context;

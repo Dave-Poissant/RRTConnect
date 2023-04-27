@@ -2,6 +2,8 @@
 
 #include <SFML/System/Vector2.hpp>
 
+#include <iostream>
+
 class CollisionGeometry
 {
 public:

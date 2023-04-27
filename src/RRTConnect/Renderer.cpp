@@ -20,6 +20,7 @@ void Renderer::render()
     renderObstacles();
     renderVertices();
     renderEdges();
+    renderPath();
     m_context->window.display();
 }
 
@@ -44,5 +45,13 @@ void Renderer::renderEdges()
     for (auto edge : m_grid->getEdges())
     {
         m_context->window.draw(edge->getEdge(), 2, sf::Lines);
+    }
+}
+
+void Renderer::renderPath()
+{
+    for (auto pathEdge : m_grid->getPathEdges())
+    {
+        m_context->window.draw(pathEdge->getEdge(), 2, sf::Lines);
     }
 }

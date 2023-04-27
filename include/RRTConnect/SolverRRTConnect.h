@@ -19,13 +19,15 @@ public:
 
 private:
     
-    bool isGoalReached();
+    bool isGoalReached(Vertex* n1, Vertex* n2);
     int grid2Index(int x, int y);
     void index2Grid(int i, int& x, int& y);
     Vertex* findNearestNode(std::unordered_set<Vertex, VertexIdAsHash, CompareCoordinates> list, Vertex* qNew);
     Vertex* createRandomNode();
     bool isObstacleBetween(Vertex* qNear, Vertex* qNew);
     bool isInObstacle(Vertex* qNew);
+
+    std::vector<Vertex*> convertClosedListToPath(const Vertex& boundary);
 
     Grid* m_grid;
     const Config* m_config;

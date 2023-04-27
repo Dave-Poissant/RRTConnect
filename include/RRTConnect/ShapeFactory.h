@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <mutex>
+#include <cmath>
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -34,6 +35,15 @@ public:
         circle->setOutlineThickness(-2.f);
         circle->setOutlineColor(sf::Color::Black);
         return circle;
+    }
+
+    static sf::RectangleShape* createPathEdgeShape(int length, sf::Vector2f position, float rotation)
+    {
+        sf::RectangleShape* rectangle = new sf::RectangleShape(sf::Vector2f(length, 3.f));
+        rectangle->setPosition(position);
+        rectangle->rotate(rotation);
+        rectangle->setFillColor(sf::Color::Black);
+        return rectangle;
     }
 };
 

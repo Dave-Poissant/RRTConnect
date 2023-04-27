@@ -24,7 +24,6 @@ private:
     void generateObstacles();
     void generateStartingPoint();
     void generateGoalPoint();
-    void generateEdges();
 
     const Config m_config;
     Context m_context;

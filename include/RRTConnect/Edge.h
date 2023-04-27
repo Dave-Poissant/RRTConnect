@@ -19,6 +19,12 @@ public:
     ~Edge()
     {}
 
+    void setColor(sf::Color color)
+    {
+        m_line[0].color = color;
+        m_line[1].color = color;
+    }
+
     sf::Vertex* getEdge() { return m_line; }
 
 private:

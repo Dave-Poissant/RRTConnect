@@ -88,9 +88,36 @@ public:
         return vertex;
     }
 
-    Edge* addEdge(Vertex* vertex1, Vertex* vertex2)
+    std::vector<Edge*> addPath(std::vector<Vertex*> path)
     {
-        Edge* edge = new Edge(vertex1, vertex2);
+        for (auto vertex : path)
+        {
+            int x1 = vertex->m_id % m_config.windowX;
+            int y1 = vertex->m_id / m_config.windowX;
+            int x2 = vertex->m_parentId % m_config.windowX;
+            int y2 = vertex->m_parentId / m_config.windowX;
+
+            Vertex* vertex1Ptr = new Vertex(x1, y1);
+            Vertex* vertex2Ptr = new Vertex(x2, y2);
+            Edge* edge = new Edge(vertex1Ptr, vertex2Ptr);
+            edge->setColor(sf::Color::Red);
+
+            m_pathEdges.push_back(edge);
+        }
+
+        return m_pathEdges;
+    }
+
+    Edge* addEdge(int gridId, int parentGridId)
+    {
+        int x1 = gridId % m_config.windowX;
+        int y1 = gridId / m_config.windowX;
+        int x2 = parentGridId % m_config.windowX;
+        int y2 = parentGridId / m_config.windowX;
+
+        Vertex* vertex1Ptr = new Vertex(x1, y1);
+        Vertex* vertex2Ptr = new Vertex(x2, y2);
+        Edge* edge = new Edge(vertex1Ptr, vertex2Ptr);
         
         m_edges.push_back(edge);
         return edge;
@@ -98,6 +125,7 @@ public:
 
     std::vector<Obstacle*> getObstacles() { return m_obstacles; }
     std::vector<Vertex*> getVertices() { return m_vertices; }
+    std::vector<Edge*> getPathEdges() { return m_pathEdges; }
     std::vector<Edge*> getEdges() { return m_edges; }
 
     Vertex* getStart() { return m_start; }
@@ -107,6 +135,7 @@ private:
 
     std::vector<Obstacle*> m_obstacles;
     std::vector<Vertex*> m_vertices;
+    std::vector<Edge*> m_pathEdges;
     std::vector<Edge*> m_edges;
 
     Vertex* m_start;

@@ -102,14 +102,6 @@ void Application::generateGoalPoint()
     m_grid->addGoalPoint(54*32.f, 41*32.f);
 }
 
-void Application::generateEdges()
-{
-    Vertex* vertex1 = m_grid->addVertex(250, 800);
-    m_grid->addEdge(m_grid->getStart(), vertex1);
-    Vertex* vertex2 = m_grid->addVertex(1400, 750);
-    m_grid->addEdge(vertex1, vertex2);
-    m_grid->addEdge(vertex2, m_grid->getGoal());
-}
 
 void Application::playingLoop()
 {
