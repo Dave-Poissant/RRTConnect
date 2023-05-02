@@ -110,7 +110,7 @@ bool SolverRRTConnect::isObstacleBetween(Vertex* n1, Vertex* n2)
                 return true;
         }
     }
-
+    //std::cout << "No obstacle between n1(x: " << n1->x() << ", y: " << n1->y() << ") and n2(x: " << n2->x() << ", y: " << n2->y() << ")" << std::endl;
     return false;
 }
 
@@ -187,7 +187,7 @@ bool SolverRRTConnect::solve()
     int i = 0;
     while (!m_solved && i < 1000)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         Vertex* sampleNode = createRandomNode();
 
@@ -202,9 +202,7 @@ bool SolverRRTConnect::solve()
 
         Vertex* newNode = findNearestNode(sampleListFront, sampleNode);
 
-        if (newNode->m_id == -1 || isInObstacle(newNode))
-            continue;
-        else
+        if (newNode->m_id != -1 && !isInObstacle(newNode))
         {
             m_grid->addVertex(newNode->x(), newNode->y());
             m_grid->addEdge(newNode->m_id, newNode->m_parentId);
@@ -255,6 +253,8 @@ bool SolverRRTConnect::solve()
                 }
             }
         }
+        else
+            continue;
 
         // swap
         if (sampleListBack.size() < sampleListFront.size())

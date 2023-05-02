@@ -25,8 +25,8 @@ public:
 
     bool isPointInside(sf::Vector2f point)
     {
-        return (point.x > m_position.x && point.x < m_position.x + m_size.x &&
-        point.y > m_position.y && point.y < m_position.y + m_size.y);
+        return (point.x >= m_position.x && point.x <= m_position.x + m_size.x &&
+        point.y >= m_position.y && point.y <= m_position.y + m_size.y);
     }
 
     float x() const
